@@ -23,6 +23,7 @@ async fn main()->Result<(), Box<dyn std::error::Error>> {
     Couldn't Set wallpaper!");
     let image_id = random_uuid_string();
     let change_back: bool = save_wallpaper_prompt(image.clone(), image_id);
+    println!("Current wallpaper is saved to ~/Pictures");
     if change_back {
         wallpaper::set_from_path(backup_path().to_str().unwrap()).expect("
         Couldn't Set wallpaper!");

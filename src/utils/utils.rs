@@ -57,13 +57,27 @@ pub async fn _download_image_unsplash(
 fn backup_current_wallpaper() {
     let cache_dir = dirs::cache_dir().ok_or("no cache dir").unwrap();
     let backup_path = cache_dir.join("backup");
-    copy(cache_dir.clone().join("wallpaper"), backup_path).unwrap();
+    match copy(cache_dir.clone().join("wallpaper"), backup_path) {
+        is_backed => {
+            println!("Backup created");
+        }
+        Err(_) => {
+            println!("Backup failed");
+        }
+    }
 }
 
 fn revert_current_wallpaper() {
     let cache_dir = dirs::cache_dir().ok_or("no cache dir").unwrap();
     let new_path = cache_dir.join("wallpaper");
-    copy(cache_dir.clone().join("backup"), new_path).unwrap();
+    match copy(cache_dir.clone().join("backup"), new_path){
+        Ok(_) => {
+            println!("Backup restored");
+        }
+        Err(_) => {
+            println!("No wallpaper to restore back to! Maybe its your first run ?");
+        }
+    }
 }
 
 pub fn backup_path() -> PathBuf {
@@ -74,11 +88,11 @@ pub fn backup_path() -> PathBuf {
 
 pub async fn download_image_to_cache(url: &str) -> Result<String, Box<dyn std::error::Error>> {
     backup_current_wallpaper();
-    let cache_dir = dirs::cache_dir().ok_or("no cache dir")?;
+    let cache_dir = dirs::cache_dir().ok_or("no cache dir").expect("Cache directory couldn't be found");
     let file_path = cache_dir.join("wallpaper");
     //    let mut file = File::create(&file_path)?;
     let bytes_ = reqwest::get(url).await?.bytes().await?;
-    write(&file_path, bytes_)?;
+    write(&file_path, bytes_).expect("Failed to write image to cache!");
     Ok(file_path.to_str().to_owned().ok_or("no file path")?.into())
 }
 

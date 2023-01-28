@@ -19,8 +19,21 @@ async fn main()->Result<(), Box<dyn std::error::Error>> {
     let config = settings::config();
     let random_url = get_random_photo_url(config.clone()).await;
     let image = download_image_to_cache(&random_url.clone()).await.unwrap();
+    println!("{}", image.clone());
     wallpaper::set_from_path(&image).expect("
     Couldn't Set wallpaper!");
+    println!("Wallpaper changed to {}", image.clone());
+
+    let mut input = String::new();
+    println!("Is wallpaper changed? (y/n)");
+    std::io::stdin().read_line(&mut input).unwrap();
+    if input.trim() == "y" {
+        println!("Success!");
+    }
+    if input.trim() == "n" {
+        wallpaper::set_from_path(&image).expect("
+        Couldn't Set wallpaper!");
+    }
     let image_id = random_uuid_string();
     let change_back: bool = save_wallpaper_prompt(image.clone(), image_id);
     println!("Current wallpaper is saved to ~/Pictures");

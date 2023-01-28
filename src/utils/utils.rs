@@ -56,9 +56,9 @@ pub async fn _download_image_unsplash(
 
 fn backup_current_wallpaper() {
     let cache_dir = dirs::cache_dir().ok_or("no cache dir").unwrap();
-    let backup_path = cache_dir.join("backup");
-    match copy(cache_dir.clone().join("wallpaper"), backup_path) {
-        is_backed => {
+    let backup_path = cache_dir.join("backup.jpg");
+    match copy(cache_dir.clone().join("wallpaper.jpg"), backup_path) {
+        Ok(_) => {
             println!("Backup created");
         }
         Err(_) => {
@@ -82,15 +82,23 @@ fn revert_current_wallpaper() {
 
 pub fn backup_path() -> PathBuf {
     let cache_dir = dirs::cache_dir().ok_or("no cache dir").unwrap();
-    let backup_path = cache_dir.join("backup");
+    let backup_path = cache_dir.join("backup.jpg");
     backup_path
 }
 
 pub async fn download_image_to_cache(url: &str) -> Result<String, Box<dyn std::error::Error>> {
     backup_current_wallpaper();
     let cache_dir = dirs::cache_dir().ok_or("no cache dir").expect("Cache directory couldn't be found");
-    let file_path = cache_dir.join("wallpaper");
-    //    let mut file = File::create(&file_path)?;
+    // delete the pre-existing wallpaper.jpg
+    match std::fs::remove_file(cache_dir.join("wallpaper.jpg")) {
+        Ok(_)=> {
+            println!("Removed the previous artificat");
+        }
+        Err(_)=> {
+            println!("Something went wrong");
+        }
+    }
+    let file_path = cache_dir.join("wallpaper.jpg");
     let bytes_ = reqwest::get(url).await?.bytes().await?;
     write(&file_path, bytes_).expect("Failed to write image to cache!");
     Ok(file_path.to_str().to_owned().ok_or("no file path")?.into())
@@ -101,7 +109,6 @@ pub fn save_wallpaper_prompt(image: String, image_id: String) -> bool {
     println!("Do you want to save this wallpaper? (y/n)");
     std::io::stdin().read_line(&mut input).unwrap();
     if input.trim() == "y" {
-        dbg!("Debug");
         let picture_dir = dirs::picture_dir().unwrap();
         let file_path = picture_dir.join(format!("{}.jpg", image_id));
         println!("Your wallpaper is saved in ~/Pictures directory!");

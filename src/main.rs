@@ -1,6 +1,7 @@
 mod utils;
 mod types;
 mod config;
+use types::types::Config;
 use utils::utils::{ 
     get_random_photo_url, 
     download_image_to_cache, 
@@ -16,7 +17,23 @@ use config::config as settings;
 #[tokio::main]
 async fn main()->Result<(), Box<dyn std::error::Error>> {
     println!("Welcome to Wallie Rallie, Random wallpers from unsplash");
+    // start wallpaper_loop
     let config = settings::config();
+    loop {
+        wallpaper_change(config.clone()).await;
+        // ask user if they want to change wallpaper again
+        let mut input = String::new();
+        println!("Change wallpaper again? (y/n)");
+        std::io::stdin().read_line(&mut input).unwrap();
+        if input.trim() == "n" {
+            break;
+        }
+    }
+    Ok(())
+}
+
+async fn wallpaper_change(config: Config)->Result<(), Box<dyn std::error::Error>> {
+    // let config = settings::config();
     let random_url = get_random_photo_url(config.clone()).await;
     let image = download_image_to_cache(&random_url.clone()).await.unwrap();
     println!("{}", image.clone());

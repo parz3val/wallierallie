@@ -13,8 +13,13 @@ pub async fn get_access_token(config: Config) -> Result<String, Box<dyn std::err
         ])
         .send()
         .await
-        .unwrap();
-    let access_token: AccessToken = response.json().await.unwrap();
+        .expect(
+            "TokenFetchError, Error while fetching access token from unsplash: {}"
+        );
+    let access_token: AccessToken = response.json().await.unwrap_or_else(move |e| {
+        println!("TokenDecodeError, Error while decoding access token from unsplash: {}", e);
+        panic!("Can't go further")
+    });
     Ok(access_token.access_token)
 }
 
@@ -25,15 +30,17 @@ pub async fn get_random_photo_url(config: Config) -> String {
         .get(url)
         .header(
             "Authorization",
-            format!("Bearer {}", get_access_token(config).await.unwrap()),
+            format!("Bearer {}", get_access_token(config).await.expect("TokenError,
+            Error while fetching access token from unsplash: {}")),
         )
         .send()
         .await
-        .unwrap();
-    let photo: Photo = response.json().await.unwrap();
-    //dbg!(photo);
-    //panic!("Description");
-    //    photo.links.download_location
+        .expect(
+            "FetchError, Error while fetching random photo from unsplash: {}",
+        );
+    let photo: Photo = response.json().await.expect(
+        "JsonError, Error while parsing json from unsplash: {}",
+    );
     photo.urls.raw
 }
 
@@ -98,7 +105,10 @@ pub async fn download_image_to_cache(url: &str) -> Result<String, Box<dyn std::e
             println!("Something went wrong");
         }
     }
-    let file_path = cache_dir.join("wallpaper.jpg");
+    // generate new uuid for the wallpaper
+    let uuid = random_uuid_string();
+    let wallpaper_name = format!("{}.jpg", uuid);
+    let file_path = cache_dir.join(wallpaper_name);
     let bytes_ = reqwest::get(url).await?.bytes().await?;
     write(&file_path, bytes_).expect("Failed to write image to cache!");
     Ok(file_path.to_str().to_owned().ok_or("no file path")?.into())
@@ -111,6 +121,10 @@ pub fn save_wallpaper_prompt(image: String, image_id: String) -> bool {
     if input.trim() == "y" {
         let picture_dir = dirs::picture_dir().unwrap();
         let file_path = picture_dir.join(format!("{}.jpg", image_id));
+        // save the file to caches wallpaper.jpg as well
+        let cache_dir = dirs::cache_dir().ok_or("no cache dir").unwrap();
+        let wallpaper_path = cache_dir.join("wallpaper.jpg");
+        copy(image.clone(), wallpaper_path).unwrap();
         println!("Your wallpaper is saved in ~/Pictures directory!");
         copy(image, file_path).unwrap();
     }

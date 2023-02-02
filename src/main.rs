@@ -18,9 +18,23 @@ use config::config as settings;
 async fn main()->Result<(), Box<dyn std::error::Error>> {
     println!("Welcome to Wallie Rallie, Random wallpers from unsplash");
     // start wallpaper_loop
-    let config = settings::config();
+    let args: Vec<String> = std::env::args().collect();
+    let mut query_args = String::from("dark");
+    if args.len() > 1 {
+        // take the first argument as the query argument and add dark at the end
+        query_args = format!("{} dark", args[1]);
+    }
+    let config = settings::config(query_args);
+    // check for the command line arguments
     loop {
-        wallpaper_change(config.clone()).await;
+        match wallpaper_change(config.clone()).await {
+            Ok(_) => {
+                println!("Wallpaper changed successfully");
+            }
+            _ => {
+                    println!("Wallpaper change failed");
+                }
+        }
         // ask user if they want to change wallpaper again
         let mut input = String::new();
         println!("Change wallpaper again? (y/n)");
@@ -40,17 +54,6 @@ async fn wallpaper_change(config: Config)->Result<(), Box<dyn std::error::Error>
     wallpaper::set_from_path(&image).expect("
     Couldn't Set wallpaper!");
     println!("Wallpaper changed to {}", image.clone());
-
-    let mut input = String::new();
-    println!("Is wallpaper changed? (y/n)");
-    std::io::stdin().read_line(&mut input).unwrap();
-    if input.trim() == "y" {
-        println!("Success!");
-    }
-    if input.trim() == "n" {
-        wallpaper::set_from_path(&image).expect("
-        Couldn't Set wallpaper!");
-    }
     let image_id = random_uuid_string();
     let change_back: bool = save_wallpaper_prompt(image.clone(), image_id);
     println!("Current wallpaper is saved to ~/Pictures");

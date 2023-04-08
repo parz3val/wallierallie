@@ -1,11 +1,13 @@
 use crate::types::types::{AccessToken, Config, Photo};
 use std::{fs::copy, fs::write, path::PathBuf};
+use serde::Serialize;
 
 pub async fn get_access_token(config: Config) -> Result<String, Box<dyn std::error::Error>> {
     let url = config.oauth_url;
     let client = reqwest::Client::new();
     let response = client
         .post(url)
+        .header("User-Agent", "reqwest")
         .form(&[
             ("client_id", config.client_id),
             ("client_secret", config.client_secret),
@@ -16,13 +18,26 @@ pub async fn get_access_token(config: Config) -> Result<String, Box<dyn std::err
         .expect(
             "TokenFetchError, Error while fetching access token from unsplash: {}"
         );
-    let access_token: AccessToken = response.json().await.unwrap_or_else(move |e| {
-        println!("TokenDecodeError, Error while decoding access token from unsplash: {}", e);
-        panic!("Can't go further")
-    });
+    
+    let access_token: AccessToken = response.json().await?;
     Ok(access_token.access_token)
 }
 
+pub async fn _get_access_token(config: Config) -> Result<String, Box<dyn std::error::Error>> {
+    let client = reqwest::Client::new();
+
+
+    let response = client.post(&config.oauth_url)
+        .header("Content-Type", "application/x-www-form-urlencoded")
+        .header("username", config.client_id)
+        .header("password", config.client_secret)
+        .send()
+        .await?;
+
+    println!("{:?}", response);
+    panic!("END");
+    Ok("".to_string())
+}
 pub async fn get_random_photo_url(config: Config) -> String {
     let url = config.clone().random_url;
     let client = reqwest::Client::new();

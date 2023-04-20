@@ -5,12 +5,15 @@ Wallpaper application that helps to randomly download application from unsplash 
 1. clone to repo locally
 2. cd into the repo
 3. Create unsplash developer account and get client_id(api_key) and client_secret(api_secret).
-4. Replace .example.env with .env and replace client_id and client_secret
-5. Run cargo build --release or cargo Run
-6. Use the binary accordingly
+4. Create env.rs file and add your environment variables like below
 
+```rust
+pub const client_id: &str = "your client id";
+pub const client_secret: &str = "your client secret";
+pub const oauth_url: &str = "https://unsplash.com/oauth/token/";
+```
 
 # How to create a shortcut for the sxhkd
-1. Copy binary to /usr/bin and put .env in your $HOME
+1. Copy binary to /usr/bin
 2. Set sxhkd to fire wallierallie
 

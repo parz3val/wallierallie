@@ -14,5 +14,8 @@ Cargo.lock
 
 /target
 .env
- .DS_Store
- src/.DS_Store
+.DS_Store
+src/.DS_Store
+neww/src/env.rs
+.vscode
+

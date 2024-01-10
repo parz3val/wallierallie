@@ -1,4 +1,5 @@
 use std::{io::Bytes, path::PathBuf};
+use std::process::Command;
 
 type Error = Box<dyn std::error::Error>;
 pub async fn wallpaper_change(c: super::types::Config) -> Result<(), Error> {
@@ -7,7 +8,13 @@ pub async fn wallpaper_change(c: super::types::Config) -> Result<(), Error> {
     wallpaper::set_from_path(&image).expect(
         "WallpaperError, Error while setting wallpaper, please check if the image exists",
     );
+
     println!("Wallpaper changed to {}", image);
+    Command::new("wal")
+        .arg("-i")
+        .arg(image)
+        .output()
+        .expect("Failed to execute pywal");
     Ok(())
 }
 

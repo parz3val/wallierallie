@@ -38,7 +38,7 @@ impl TryFrom<Command> for Config {
 }
 
 fn ask_args() -> String {
-    String::from("nature")
+    String::from("4k")
 }
 fn random_urlinator(s: String) -> String {
     String::from(format!(
